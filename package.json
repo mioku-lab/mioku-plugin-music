@@ -1,0 +1,38 @@
+{
+  "name": "mioku-plugin-music",
+  "version": "1.0.0",
+  "description": "音乐插件：点歌、搜索音乐、听歌语音发送",
+  "main": "index.ts",
+  "mioku": {
+    "services": [
+      "config",
+      "ai",
+      "screenshot",
+      "applemusic"
+    ],
+    "help": {
+      "title": "音乐",
+      "description": "点歌并发送语音，支持搜索结果图片列表",
+      "commands": [
+        {
+          "cmd": "点歌 <歌曲名>",
+          "desc": "搜索歌曲/歌手/专辑，返回最多 15 条结果图片列表",
+          "usage": "/点歌 晴天",
+          "role": "member"
+        },
+        {
+          "cmd": "听 <编号>",
+          "desc": "发送上次搜索列表中的指定歌曲语音",
+          "usage": "听1",
+          "role": "member"
+        },
+        {
+          "cmd": "听 <关键词>",
+          "desc": "直接按关键词搜索并发送第一首歌曲语音",
+          "usage": "听晴天",
+          "role": "member"
+        }
+      ]
+    }
+  }
+}
