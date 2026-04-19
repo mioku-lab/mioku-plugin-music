@@ -4,7 +4,8 @@ import { getMusicRuntimeState } from "./runtime";
 const musicSkills: AISkill[] = [
   {
     name: "music",
-    description: "搜索音乐/歌曲/专辑/歌手，并可发送歌曲",
+    description:
+      "搜索音乐/歌曲/专辑/歌手，并可发送歌曲，注意，当用户想让你唱歌时，通常使用该技能而不是发送语音。",
     tools: [
       {
         name: "search_music",
