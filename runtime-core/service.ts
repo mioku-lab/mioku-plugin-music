@@ -228,6 +228,7 @@ export class MusicPluginRuntime {
         height: 100, // 处理极端情况
         fullPage: true,
         type: "png",
+        themeMode: "auto",
       });
       await sendImageMessage(ctx, event, imagePath);
       this.deps.logger.info(
