@@ -4,7 +4,7 @@ export const MUSIC_PROVIDER_NAMES: MusicProviderName[] = ["applemusic"];
 
 export interface MusicBaseConfig {
   searchLimit: number;
-  defaultProvider: MusicProviderName;
+  defaultProvider?: MusicProviderName | string;
   applemusic: {
     storefront: string;
     language: string;

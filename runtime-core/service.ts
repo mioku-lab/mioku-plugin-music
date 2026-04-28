@@ -2,7 +2,11 @@ import type { AIService } from "../../../src/services/ai/types";
 import type { ScreenshotService } from "../../../src/services/screenshot/types";
 import type { AppleMusicServiceApi } from "../../../src/services/applemusic/types";
 import { MUSIC_DEFAULTS } from "../config";
-import { createMusicProvider } from "../providers/factory";
+import {
+  createMusicProvider,
+  getMusicProviderCandidates,
+  resolveMusicProviderName,
+} from "../providers/factory";
 import { renderMusicSearchListHtml } from "../render/search-list";
 import { MusicSessionStore } from "./session-store";
 import { notifyFallback } from "./fallback";
@@ -62,6 +66,7 @@ export class MusicPluginRuntime {
   private readonly deps: MusicPluginRuntimeDeps;
   private readonly sessions = new MusicSessionStore();
   private config: MusicBaseConfig = MUSIC_DEFAULTS;
+  private static readonly COMMAND_REACTION_FACE_ID = 60;
 
   constructor(deps: MusicPluginRuntimeDeps) {
     this.deps = deps;
@@ -69,6 +74,21 @@ export class MusicPluginRuntime {
 
   updateConfig(nextConfig: MusicBaseConfig): void {
     this.config = nextConfig;
+    const services = this.getProviderServices();
+    const configured = String(nextConfig.defaultProvider || "").trim();
+    const resolved = resolveMusicProviderName(configured, services);
+    if (!resolved) {
+      const candidates = getMusicProviderCandidates();
+      this.deps.logger.warn(
+        `music 未找到可用 provider。defaultProvider=${configured || "<empty>"}，候选列表=${candidates.join(", ")}`,
+      );
+      return;
+    }
+    if (configured && configured !== resolved) {
+      this.deps.logger.warn(
+        `music defaultProvider=${configured} 不可用，已回退到 ${resolved}`,
+      );
+    }
   }
 
   setSessionMediaUserToken(event: any, token: string): void {
@@ -95,18 +115,21 @@ export class MusicPluginRuntime {
 
     const searchKeyword = parseSearchKeyword(text);
     if (searchKeyword) {
+      await this.tryReactToCommandMessage(ctx, event);
       await this.searchAndSendList(ctx, event, searchKeyword);
       return true;
     }
 
     const listenIndex = parseListenIndex(text);
     if (listenIndex != null) {
+      await this.tryReactToCommandMessage(ctx, event);
       await this.sendByIndex(ctx, event, listenIndex);
       return true;
     }
 
     const listenKeyword = parseListenKeyword(text);
     if (listenKeyword) {
+      await this.tryReactToCommandMessage(ctx, event);
       await this.sendByKeyword(ctx, event, listenKeyword);
       return true;
     }
@@ -303,8 +326,9 @@ export class MusicPluginRuntime {
     if (current) {
       return current;
     }
+    const provider = this.resolveProviderName(this.config.defaultProvider);
     const next: MusicSessionState = {
-      provider: this.config.defaultProvider,
+      provider,
       updatedAt: Date.now(),
     };
     this.sessions.set(event, next);
@@ -312,13 +336,14 @@ export class MusicPluginRuntime {
   }
 
   private createProvider(provider: MusicProviderName, mediaUserToken?: string) {
+    const resolvedProvider = this.resolveProviderName(provider);
     const finalMediaUserToken =
       String(mediaUserToken || "").trim() ||
       String(this.config.applemusic.defaultMediaUserToken || "").trim() ||
       undefined;
 
     return createMusicProvider(
-      provider,
+      resolvedProvider,
       {
         applemusic: this.deps.applemusicService,
       },
@@ -328,5 +353,61 @@ export class MusicPluginRuntime {
         language: this.config.applemusic.language,
       },
     );
+  }
+
+  private resolveProviderName(
+    preferredProviderName: unknown,
+  ): MusicProviderName {
+    const services = this.getProviderServices();
+    const resolvedProvider = resolveMusicProviderName(
+      preferredProviderName,
+      services,
+    );
+    if (resolvedProvider) {
+      return resolvedProvider;
+    }
+
+    const candidates = getMusicProviderCandidates();
+    const configured = String(preferredProviderName || "").trim();
+    const configuredHint = configured
+      ? `当前配置 defaultProvider=${configured}。`
+      : "当前配置未填写 defaultProvider。";
+    throw new Error(
+      `未找到可用的 music provider 服务。${configuredHint} 已注册 provider 列表：${candidates.join(", ")}。`,
+    );
+  }
+
+  private getProviderServices() {
+    return {
+      applemusic: this.deps.applemusicService,
+    };
+  }
+
+  private async tryReactToCommandMessage(ctx: any, event: any): Promise<void> {
+    const messageId = Number(event?.message_id);
+    if (!Number.isFinite(messageId) || messageId <= 0) {
+      return;
+    }
+
+    const selfId = Number(event?.self_id || ctx?.self_id);
+    if (!Number.isFinite(selfId) || selfId <= 0) {
+      return;
+    }
+
+    const bot =
+      typeof ctx?.pickBot === "function" ? ctx.pickBot(selfId) : undefined;
+    if (!bot || typeof bot.api !== "function") {
+      return;
+    }
+
+    try {
+      await bot.api("set_msg_emoji_like", {
+        message_id: messageId,
+        emoji_id: MusicPluginRuntime.COMMAND_REACTION_FACE_ID,
+        set: true,
+      });
+    } catch (error) {
+      this.deps.logger.warn(`music set_msg_emoji_like 失败: ${error}`);
+    }
   }
 }

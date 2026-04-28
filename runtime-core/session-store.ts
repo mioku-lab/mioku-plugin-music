@@ -1,6 +1,8 @@
 import type { MusicSessionState } from "../types";
+import { MUSIC_PROVIDER_NAMES } from "../types";
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_PROVIDER = MUSIC_PROVIDER_NAMES[0];
 
 function buildSessionKey(event: any): string {
   if (event?.group_id != null) {
@@ -27,7 +29,7 @@ export class MusicSessionStore {
 
   patch(event: any, patchState: Partial<MusicSessionState>): MusicSessionState {
     const current = this.get(event) || {
-      provider: "applemusic" as const,
+      provider: DEFAULT_PROVIDER,
       updatedAt: Date.now(),
     };
     const next = {

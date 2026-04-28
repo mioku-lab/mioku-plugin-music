@@ -15,12 +15,16 @@ function cloneConfig<T>(value: T): T {
 export default definePlugin({
   name: "music",
   version: "1.0.0",
-  description: "点歌与听歌插件，当前默认接入 Apple Music",
+  description: "点歌与听歌插件",
   async setup(ctx) {
     const configService = ctx.services?.config as ConfigService | undefined;
     const aiService = ctx.services?.ai as AIService | undefined;
-    const screenshotService = ctx.services?.screenshot as ScreenshotService | undefined;
-    const applemusicService = ctx.services?.applemusic as AppleMusicServiceApi | undefined;
+    const screenshotService = ctx.services?.screenshot as
+      | ScreenshotService
+      | undefined;
+    const applemusicService = ctx.services?.applemusic as
+      | AppleMusicServiceApi
+      | undefined;
     let baseConfig = cloneConfig(MUSIC_DEFAULTS);
 
     if (configService) {
