@@ -241,6 +241,7 @@ export class MusicPluginRuntime {
         aiService: this.deps.aiService,
         instruction: `music 插件搜索失败。错误：${String(error)}。请简短告知稍后重试。`,
         fallbackMessage: `点歌失败：${String(error)}`,
+        error,
       });
     }
   }
@@ -273,6 +274,7 @@ export class MusicPluginRuntime {
         aiService: this.deps.aiService,
         instruction: `用户选择听第${index}首时下载失败。错误：${String(error)}。请简短道歉并建议重试。`,
         fallbackMessage: "播放失败，请稍后重试。",
+        error,
       });
     }
   }
@@ -291,6 +293,7 @@ export class MusicPluginRuntime {
         aiService: this.deps.aiService,
         instruction: `用户请求“听${keyword}”时失败。错误：${String(error)}。请简短提示后重试。`,
         fallbackMessage: "播放失败，请稍后重试。",
+        error,
       });
     }
   }
