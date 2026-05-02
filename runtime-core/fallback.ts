@@ -36,7 +36,7 @@ export async function notifyFallback(options: {
           {
             title: "Music Plugin Notice",
             content:
-              "You are responding for music plugin failures. Keep it concise, friendly, and actionable in Chinese.",
+              "A music-related action was triggered. Judge whether the user likely intended this action or triggered it accidentally. If it looks accidental or like a casual mention, weave a natural reply into the conversation without mentioning the plugin, tools, or commands. If the user seems to want this feature, respond helpfully. Keep it concise and friendly in Chinese.",
           },
         ],
       });
