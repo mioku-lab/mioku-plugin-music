@@ -3,6 +3,13 @@
   "version": "1.1.0",
   "description": "音乐插件：点歌、搜索音乐、听歌语音发送",
   "main": "index.ts",
+  "keywords": [
+    "mioku"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mioku-lab/mioku-plugin-music.git"
+  },
   "mioku": {
     "services": [
       "config",
