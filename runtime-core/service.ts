@@ -209,7 +209,7 @@ export class MusicPluginRuntime {
         ctx,
         event,
         aiService: this.deps.aiService,
-        instruction: `用户说“听${query}”，但搜索不到可播放歌曲。请简短提示换关键词。`,
+        instruction: `用户说”听${query}”，但搜索不到可播放歌曲。请简短提示换关键词。`,
         fallbackMessage: `没有找到和「${query}」相关的歌曲`,
       });
       return;
@@ -240,7 +240,7 @@ export class MusicPluginRuntime {
         await sendTextMessage(
           ctx,
           event,
-          `已找到 ${result.tracks.length} 首。发送“听1”播放第一首。`,
+          `已找到 ${result.tracks.length} 首。发送”听1”播放第一首。`,
         );
         return;
       }
@@ -255,7 +255,7 @@ export class MusicPluginRuntime {
       });
       await sendImageMessage(ctx, event, imagePath);
       this.deps.logger.info(
-        `[music] search rendered query="${keyword}" count=${result.tracks.length}`,
+        `[music] search rendered query=”${keyword}” count=${result.tracks.length}`,
       );
     } catch (error) {
       await notifyFallback({
@@ -283,7 +283,7 @@ export class MusicPluginRuntime {
         event,
         aiService: this.deps.aiService,
         instruction: `用户请求听第${index}首，但当前列表不足。请提示先点歌或检查编号。`,
-        fallbackMessage: `没有第 ${index} 首，请先“点歌 关键词”再选择`,
+        fallbackMessage: `没有第 ${index} 首，请先”点歌 关键词”再选择`,
       });
       return;
     }
@@ -296,7 +296,7 @@ export class MusicPluginRuntime {
         event,
         aiService: this.deps.aiService,
         instruction: `用户选择听第${index}首时下载失败。错误：${String(error)}。请简短道歉并建议重试。`,
-        fallbackMessage: "播放失败，请稍后重试。",
+        fallbackMessage: "播放失败，请稍后重试",
         error,
       });
     }
@@ -314,8 +314,8 @@ export class MusicPluginRuntime {
         ctx,
         event,
         aiService: this.deps.aiService,
-        instruction: `用户请求“听${keyword}”时失败。错误：${String(error)}。请简短提示后重试。`,
-        fallbackMessage: "播放失败，请稍后重试。",
+        instruction: `用户请求”听${keyword}”时失败。错误：${String(error)}。请简短提示后重试。`,
+        fallbackMessage: "播放失败，请稍后重试",
         error,
       });
     }

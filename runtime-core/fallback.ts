@@ -25,6 +25,11 @@ export async function notifyFallback(options: {
     );
   }
 
+  const text = options.ctx.text(options.event)?.trim() ?? "";
+  if (!text.startsWith("/")) {
+    return;
+  }
+
   const chatRuntime = options.aiService?.getChatRuntime();
   if (chatRuntime) {
     try {
