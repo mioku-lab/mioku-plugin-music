@@ -180,6 +180,12 @@ export class MusicPluginRuntime {
     this.deps.logger.info(
       `[music] download songId=${songId} source=${result.sourceType} file=${result.filePath}`,
     );
+    if (!result || typeof result !== "object") {
+      throw new Error(`downloadSong 返回异常: ${JSON.stringify(result)}`);
+    }
+    if ("tracks" in result && Array.isArray((result as any).tracks)) {
+      this.deps.logger.warn(`[music] downloadSong 返回了 tracks 字段`);
+    }
     if (result.sourceType !== "hls") {
       throw new Error("当前未获取到高质量 HLS 音频，请检查 media user token");
     }

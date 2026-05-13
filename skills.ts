@@ -76,7 +76,8 @@ const musicSkills: AISkill[] = [
           required: [],
         },
         handler: async (args: any, runtimeCtx?: any) => {
-          const runtime = getMusicRuntimeState().runtime;
+          const runtimeState = getMusicRuntimeState();
+          const runtime = runtimeState.runtime;
           const ctx = runtimeCtx?.ctx;
           const event = runtimeCtx?.event || runtimeCtx?.rawEvent;
           if (!runtime || !ctx || !event) {
@@ -89,6 +90,8 @@ const musicSkills: AISkill[] = [
             return "必须提供 song_id 或 query";
           }
 
+          ctx.logger.info(`[music] send_music_song called: songId=${songId}, query=${query}`);
+
           try {
             if (songId) {
               await runtime.sendSongById(ctx, event, songId);
@@ -98,6 +101,7 @@ const musicSkills: AISkill[] = [
             await runtime.sendSongByQuery(ctx, event, query);
             return "已按关键词发送歌曲";
           } catch (error) {
+            ctx.logger.error(`[music] send_music_song failed: ${error}`);
             await runtime.notifyFailure(
               ctx,
               event,
