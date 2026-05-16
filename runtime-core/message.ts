@@ -1,4 +1,5 @@
 import * as fs from "fs/promises";
+import * as path from "path";
 
 function normalizeFileSource(file: string): string {
   const value = String(file || "").trim();
@@ -97,6 +98,81 @@ export async function sendImageMessage(
     const buffer = await fs.readFile(imagePath);
     const base64 = `base64://${buffer.toString("base64")}`;
     await sendPayload(base64);
+  }
+}
+
+export async function sendFileMessage(
+  ctx: any,
+  event: any,
+  filePath: string,
+  name: string,
+): Promise<void> {
+  const ext = path.extname(filePath);
+  const fileName = ext ? `${name}${ext}` : name;
+  const { bot, groupId, userId } = getBotAndTarget(ctx, event);
+  const sendPayload = async (source: string) => {
+    const payload: any[] = [];
+    payload.push(
+      ctx?.segment?.file
+        ? ctx.segment.file(normalizeFileSource(source), { name: fileName })
+        : { type: "file", file: normalizeFileSource(source), name: fileName },
+    );
+
+    if (bot && groupId != null) {
+      await bot.sendGroupMsg(groupId, payload);
+      return;
+    }
+    if (bot && userId != null) {
+      await bot.sendPrivateMsg(userId, payload);
+      return;
+    }
+    if (typeof event?.reply === "function") {
+      await event.reply(payload);
+      return;
+    }
+    throw new Error("当前上下文不支持文件发送");
+  };
+
+  const canReadLocalFile =
+    filePath.startsWith("/") || /^[A-Za-z]:[\\/]/.test(filePath);
+
+  let fileSendError: unknown;
+  try {
+    await sendPayload(filePath);
+    return;
+  } catch (error) {
+    fileSendError = error;
+  }
+
+  if (!canReadLocalFile) {
+    throw fileSendError instanceof Error
+      ? fileSendError
+      : new Error(String(fileSendError || "文件发送失败"));
+  }
+
+  let buffer: Buffer;
+  try {
+    buffer = await fs.readFile(filePath);
+  } catch {
+    throw fileSendError instanceof Error
+      ? fileSendError
+      : new Error(String(fileSendError || "文件发送失败"));
+  }
+
+  const base64 = `base64://${buffer.toString("base64")}`;
+  try {
+    await sendPayload(base64);
+  } catch (base64Error) {
+    const message = String(base64Error || "");
+    const timeoutLike =
+      message.includes("timeout") ||
+      message.includes("超时") ||
+      message.includes("timed out") ||
+      message.includes("ETIMEDOUT");
+    if (timeoutLike) {
+      return;
+    }
+    throw new Error("文件发送失败：路径发送失败，base64 发送也失败");
   }
 }
 

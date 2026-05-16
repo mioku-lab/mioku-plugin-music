@@ -14,6 +14,7 @@ import {
   sendImageMessage,
   sendRecordMessage,
   sendTextMessage,
+  sendFileMessage,
 } from "./message";
 import type {
   MusicBaseConfig,
@@ -170,7 +171,12 @@ export class MusicPluginRuntime {
     return provider.getAlbumDetail(albumId);
   }
 
-  async sendSongById(ctx: any, event: any, songId: string): Promise<void> {
+  async sendSongById(
+    ctx: any,
+    event: any,
+    songId: string,
+    fileName?: string,
+  ): Promise<void> {
     const session = this.getOrCreateSession(event);
     const provider = this.createProvider(
       session.provider,
@@ -189,7 +195,13 @@ export class MusicPluginRuntime {
     if (result.sourceType !== "hls") {
       throw new Error("当前未获取到高质量 HLS 音频，请检查 media user token");
     }
-    await sendRecordMessage(ctx, event, result.filePath);
+    const isPrivate = event?.message_type !== "group";
+    if (isPrivate) {
+      const finalName = fileName || "song";
+      await sendFileMessage(ctx, event, result.filePath, finalName);
+    } else {
+      await sendRecordMessage(ctx, event, result.filePath);
+    }
   }
 
   async notifyFailure(
@@ -221,7 +233,7 @@ export class MusicPluginRuntime {
       return;
     }
 
-    await this.sendSongById(ctx, event, first.id);
+    await this.sendSongById(ctx, event, first.id, first.title);
   }
 
   private async searchAndSendList(
@@ -295,7 +307,7 @@ export class MusicPluginRuntime {
     }
 
     try {
-      await this.sendSongById(ctx, event, target.id);
+      await this.sendSongById(ctx, event, target.id, target.title);
     } catch (error) {
       await notifyFallback({
         ctx,
@@ -390,6 +402,10 @@ export class MusicPluginRuntime {
   }
 
   private async tryReactToCommandMessage(ctx: any, event: any): Promise<void> {
+    if (event?.message_type === "group") {
+      return;
+    }
+
     const messageId = Number(event?.message_id);
     if (!Number.isFinite(messageId) || messageId <= 0) {
       return;
