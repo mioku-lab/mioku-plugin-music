@@ -1,4 +1,4 @@
-import type { AISkill, AITool } from "../../src";
+import type { AISkill, AITool } from "mioku";
 import { getMusicRuntimeState } from "./runtime";
 
 const musicSkills: AISkill[] = [

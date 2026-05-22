@@ -1,6 +1,6 @@
-import type { AIService } from "../../../src/services/ai/types";
-import type { ScreenshotService } from "../../../src/services/screenshot/types";
-import type { AppleMusicServiceApi } from "../../../src/services/applemusic/types";
+import type { AIService } from "mioku";
+import type { ScreenshotService } from "mioku";
+import type { AppleMusicServiceApi } from "mioku-service-applemusic";
 import { MUSIC_DEFAULTS } from "../config";
 import {
   createMusicProvider,

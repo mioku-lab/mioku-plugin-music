@@ -1,4 +1,4 @@
-import type { AIService } from "../../../src/services/ai/types";
+import type { AIService } from "mioku";
 import { sendTextMessage } from "./message";
 
 function normalizeErrorMessage(error: unknown): string {

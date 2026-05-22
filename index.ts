@@ -1,8 +1,8 @@
 import { definePlugin } from "mioki";
-import type { AIService } from "../../src/services/ai/types";
-import type { ScreenshotService } from "../../src/services/screenshot/types";
-import type { ConfigService } from "../../src/services/config/tpyes";
-import type { AppleMusicServiceApi } from "../../src/services/applemusic/types";
+import type { AIService } from "mioku";
+import type { ScreenshotService } from "mioku";
+import type { ConfigService } from "mioku";
+import type { AppleMusicServiceApi } from "mioku-service-applemusic";
 import { resetMusicRuntimeState, setMusicRuntimeState } from "./runtime";
 import { MusicPluginRuntime } from "./runtime-core/service";
 import { MUSIC_DEFAULTS } from "./config";

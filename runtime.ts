@@ -3,7 +3,7 @@ import {
   getPluginRuntimeState,
   resetPluginRuntimeState,
   setPluginRuntimeState,
-} from "../../src";
+} from "mioku";
 
 export interface MusicRuntimeState {
   runtime?: MusicPluginRuntime;

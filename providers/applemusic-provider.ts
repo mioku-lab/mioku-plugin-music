@@ -1,4 +1,4 @@
-import type { AppleMusicServiceApi } from "../../../src/services/applemusic/types";
+import type { AppleMusicServiceApi } from "mioku-service-applemusic";
 import type {
   DownloadSongResult,
   MusicAlbumDetail,
