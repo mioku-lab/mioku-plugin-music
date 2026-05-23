@@ -1,6 +1,6 @@
 {
   "name": "mioku-plugin-music",
-  "version": "0.8.0",
+  "version": "2.0.0",
   "description": "音乐插件：点歌、搜索音乐、听歌语音发送",
   "main": "index.ts",
   "type": "module",
@@ -45,7 +45,7 @@
   "peerDependencies": {
     "mioku": "^0.8.0",
     "mioki": "^0.16.0",
-    "mioku-service-applemusic": "^0.8.0"
+    "mioku-service-applemusic": "^2.0.0"
   },
   "devDependencies": {
     "mioku": "workspace:*",
