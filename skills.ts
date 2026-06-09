@@ -60,7 +60,8 @@ const musicSkills: AISkill[] = [
       } as AITool,
       {
         name: "send_music_song",
-        description: "发送歌曲语音（通过 song_id 或 query）",
+        description:
+          "发送歌曲（通过 song_id 或 query）。默认发语音；传 as_file=true 时直接发源文件",
         parameters: {
           type: "object",
           properties: {
@@ -71,6 +72,11 @@ const musicSkills: AISkill[] = [
             query: {
               type: "string",
               description: "关键词，内部会搜索后发送第一首",
+            },
+            as_file: {
+              type: "boolean",
+              description: "是否直接发送源文件",
+              default: false,
             },
           },
           required: [],
@@ -86,20 +92,27 @@ const musicSkills: AISkill[] = [
 
           const songId = String(args?.song_id || "").trim();
           const query = String(args?.query || "").trim();
+          const asFile = args?.as_file === true;
           if (!songId && !query) {
             return "必须提供 song_id 或 query";
           }
 
-          ctx.logger.info(`[music] send_music_song called: songId=${songId}, query=${query}`);
+          ctx.logger.info(
+            `[music] send_music_song called: songId=${songId}, query=${query}, asFile=${asFile}`,
+          );
 
           try {
             if (songId) {
-              await runtime.sendSongById(ctx, event, songId);
-              return "已发送歌曲";
+              await runtime.sendSongById(ctx, event, songId, undefined, {
+                forceFile: asFile,
+              });
+              return asFile ? "已发送歌曲源文件" : "已发送歌曲";
             }
 
-            await runtime.sendSongByQuery(ctx, event, query);
-            return "已按关键词发送歌曲";
+            await runtime.sendSongByQuery(ctx, event, query, {
+              forceFile: asFile,
+            });
+            return asFile ? "已按关键词发送歌曲源文件" : "已按关键词发送歌曲";
           } catch (error) {
             ctx.logger.error(`[music] send_music_song failed: ${error}`);
             await runtime.notifyFailure(

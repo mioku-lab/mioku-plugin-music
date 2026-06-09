@@ -1,6 +1,6 @@
 {
   "name": "mioku-plugin-music",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "音乐插件：点歌、搜索音乐、听歌语音发送",
   "main": "index.ts",
   "type": "module",
@@ -34,9 +34,9 @@
           "role": "member"
         },
         {
-          "cmd": "听 <关键词>",
-          "desc": "直接按关键词搜索并发送第一首歌曲语音",
-          "usage": "听晴天",
+          "cmd": "原曲 <编号>",
+          "desc": "发送上次搜索列表中的指定歌曲原曲文件",
+          "usage": "原曲1",
           "role": "member"
         }
       ]

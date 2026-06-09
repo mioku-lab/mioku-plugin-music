@@ -66,7 +66,7 @@ export function renderMusicSearchListHtml(search: MusicSearchResult): string {
       <div class="grid gap-3">${items}</div>
       <div class="mt-5 flex items-center justify-between text-[16px] text-slate-600 dark:text-slate-300">
         <div>音源：${escapeHtml(providerLabel)}</div>
-        <div>发送「听1」播放第一首歌曲</div>
+        <div>发送「听1」或「原曲1」试试看吧~</div>
       </div>
     </div>
   `;

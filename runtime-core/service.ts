@@ -42,6 +42,18 @@ function parseListenIndex(text: string): number | null {
   return idx;
 }
 
+function parseOriginalIndex(text: string): number | null {
+  const match = text.match(/^\/?原曲\s*(\d{1,2})$/);
+  if (!match) {
+    return null;
+  }
+  const idx = Number(match[1]);
+  if (!Number.isFinite(idx) || idx <= 0) {
+    return null;
+  }
+  return idx;
+}
+
 function parseSearchKeyword(text: string): string | null {
   const match = text.match(/^\/?点歌\s*(.+)$/);
   if (!match) {
@@ -49,18 +61,6 @@ function parseSearchKeyword(text: string): string | null {
   }
   const value = String(match[1] || "").trim();
   return value ? value : null;
-}
-
-function parseListenKeyword(text: string): string | null {
-  const match = text.match(/^\/?听\s*(.+)$/);
-  if (!match) {
-    return null;
-  }
-  const value = String(match[1] || "").trim();
-  if (!value || /^\d+$/.test(value)) {
-    return null;
-  }
-  return value;
 }
 
 export class MusicPluginRuntime {
@@ -124,14 +124,14 @@ export class MusicPluginRuntime {
     const listenIndex = parseListenIndex(text);
     if (listenIndex != null) {
       await this.tryReactToCommandMessage(ctx, event);
-      await this.sendByIndex(ctx, event, listenIndex);
+      await this.sendByIndex(ctx, event, listenIndex, false);
       return true;
     }
 
-    const listenKeyword = parseListenKeyword(text);
-    if (listenKeyword) {
+    const originalIndex = parseOriginalIndex(text);
+    if (originalIndex != null) {
       await this.tryReactToCommandMessage(ctx, event);
-      await this.sendByKeyword(ctx, event, listenKeyword);
+      await this.sendByIndex(ctx, event, originalIndex, true);
       return true;
     }
 
@@ -176,6 +176,7 @@ export class MusicPluginRuntime {
     event: any,
     songId: string,
     fileName?: string,
+    options?: { forceFile?: boolean },
   ): Promise<void> {
     const session = this.getOrCreateSession(event);
     const provider = this.createProvider(
@@ -196,7 +197,8 @@ export class MusicPluginRuntime {
       throw new Error("当前未获取到高质量 HLS 音频，请检查 media user token");
     }
     const isPrivate = event?.message_type !== "group";
-    if (isPrivate) {
+    const sendAsFile = isPrivate || options?.forceFile === true;
+    if (sendAsFile) {
       const finalName = fileName || "song";
       await sendFileMessage(ctx, event, result.filePath, finalName);
     } else {
@@ -219,7 +221,12 @@ export class MusicPluginRuntime {
     });
   }
 
-  async sendSongByQuery(ctx: any, event: any, query: string): Promise<void> {
+  async sendSongByQuery(
+    ctx: any,
+    event: any,
+    query: string,
+    options?: { forceFile?: boolean },
+  ): Promise<void> {
     const result = await this.searchSongs(event, query);
     const first = result.tracks[0];
     if (!first) {
@@ -233,7 +240,7 @@ export class MusicPluginRuntime {
       return;
     }
 
-    await this.sendSongById(ctx, event, first.id, first.title);
+    await this.sendSongById(ctx, event, first.id, first.title, options);
   }
 
   private async searchAndSendList(
@@ -291,6 +298,7 @@ export class MusicPluginRuntime {
     ctx: any,
     event: any,
     index: number,
+    forceFile: boolean,
   ): Promise<void> {
     const session = this.getOrCreateSession(event);
     const tracks = session.lastSearch?.tracks || [];
@@ -307,32 +315,15 @@ export class MusicPluginRuntime {
     }
 
     try {
-      await this.sendSongById(ctx, event, target.id, target.title);
+      await this.sendSongById(ctx, event, target.id, target.title, {
+        forceFile,
+      });
     } catch (error) {
       await notifyFallback({
         ctx,
         event,
         aiService: this.deps.aiService,
         instruction: `用户选择听第${index}首时下载失败。错误：${String(error)}。请简短道歉并建议重试。`,
-        fallbackMessage: "播放失败，请稍后重试",
-        error,
-      });
-    }
-  }
-
-  private async sendByKeyword(
-    ctx: any,
-    event: any,
-    keyword: string,
-  ): Promise<void> {
-    try {
-      await this.sendSongByQuery(ctx, event, keyword);
-    } catch (error) {
-      await notifyFallback({
-        ctx,
-        event,
-        aiService: this.deps.aiService,
-        instruction: `用户请求”听${keyword}”时失败。错误：${String(error)}。请简短提示后重试。`,
         fallbackMessage: "播放失败，请稍后重试",
         error,
       });
