@@ -3,6 +3,7 @@ import type { AIService } from "mioku";
 import type { ScreenshotService } from "mioku";
 import type { ConfigService } from "mioku";
 import type { AppleMusicServiceApi } from "mioku-service-applemusic";
+import type { NeteaseServiceApi } from "mioku-service-netease";
 import { resetMusicRuntimeState, setMusicRuntimeState } from "./runtime";
 import { MusicPluginRuntime } from "./runtime-core/service";
 import { MUSIC_DEFAULTS } from "./config";
@@ -25,6 +26,9 @@ export default definePlugin({
     const applemusicService = ctx.services?.applemusic as
       | AppleMusicServiceApi
       | undefined;
+    const neteaseService = ctx.services?.netease as
+      | NeteaseServiceApi
+      | undefined;
     let baseConfig = cloneConfig(MUSIC_DEFAULTS);
 
     if (configService) {
@@ -42,6 +46,7 @@ export default definePlugin({
       aiService,
       screenshotService,
       applemusicService,
+      neteaseService,
     });
     runtime.updateConfig(baseConfig);
 

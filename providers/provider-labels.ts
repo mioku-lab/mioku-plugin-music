@@ -2,6 +2,7 @@ import type { MusicProviderName } from "../types";
 
 export const MUSIC_PROVIDER_LABELS: Record<MusicProviderName, string> = {
   applemusic: "Apple Music",
+  netease: "NetEase Cloud Music",
 };
 
 export function getMusicProviderLabel(provider: MusicProviderName | string): string {

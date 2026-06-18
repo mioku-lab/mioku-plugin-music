@@ -1,6 +1,7 @@
 import type { AIService } from "mioku";
 import type { ScreenshotService } from "mioku";
 import type { AppleMusicServiceApi } from "mioku-service-applemusic";
+import type { NeteaseServiceApi } from "mioku-service-netease";
 import { MUSIC_DEFAULTS } from "../config";
 import {
   createMusicProvider,
@@ -28,6 +29,7 @@ interface MusicPluginRuntimeDeps {
   aiService?: AIService;
   screenshotService?: ScreenshotService;
   applemusicService?: AppleMusicServiceApi;
+  neteaseService?: NeteaseServiceApi;
 }
 
 function parseListenIndex(text: string): number | null {
@@ -193,8 +195,8 @@ export class MusicPluginRuntime {
     if ("tracks" in result && Array.isArray((result as any).tracks)) {
       this.deps.logger.warn(`[music] downloadSong 返回了 tracks 字段`);
     }
-    if (result.sourceType !== "hls") {
-      throw new Error("当前未获取到高质量 HLS 音频，请检查 media user token");
+    if (result.sourceType !== "hls" && result.sourceType !== "file") {
+      throw new Error("当前未获取到高质量音频，请检查 provider 配置");
     }
     const isPrivate = event?.message_type !== "group";
     const sendAsFile = isPrivate || options?.forceFile === true;
@@ -350,14 +352,19 @@ export class MusicPluginRuntime {
       String(mediaUserToken || "").trim() ||
       String(this.config.applemusic.defaultMediaUserToken || "").trim() ||
       undefined;
+    const neteaseCookie =
+      String(this.config.netease?.defaultCookie || "").trim() || undefined;
 
     return createMusicProvider(
       resolvedProvider,
       {
         applemusic: this.deps.applemusicService,
+        netease: this.deps.neteaseService,
       },
       {
         mediaUserToken: finalMediaUserToken,
+        neteaseCookie,
+        neteaseQuality: this.config.netease?.quality,
         storefront: this.config.applemusic.storefront,
         language: this.config.applemusic.language,
       },
@@ -389,6 +396,7 @@ export class MusicPluginRuntime {
   private getProviderServices() {
     return {
       applemusic: this.deps.applemusicService,
+      netease: this.deps.neteaseService,
     };
   }
 

@@ -8,4 +8,8 @@ export const MUSIC_DEFAULTS: MusicBaseConfig = {
     language: "zh-CN",
     defaultMediaUserToken: "",
   },
+  netease: {
+    quality: "exhigh",
+    defaultCookie: "",
+  },
 };

@@ -59,11 +59,13 @@
   "peerDependencies": {
     "mioku": "^0.8.0",
     "mioki": "^0.16.0",
-    "mioku-service-applemusic": "^2.0.0"
+    "mioku-service-applemusic": "^2.0.0",
+    "mioku-service-netease": "^1.0.0"
   },
   "devDependencies": {
     "mioku": "workspace:*",
     "mioki": "^0.16.0",
-    "mioku-service-applemusic": "workspace:*"
+    "mioku-service-applemusic": "workspace:*",
+    "mioku-service-netease": "workspace:*"
   }
 }

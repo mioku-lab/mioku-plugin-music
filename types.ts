@@ -1,6 +1,8 @@
-export type MusicProviderName = "applemusic";
+export type MusicProviderName = "applemusic" | "netease";
 
-export const MUSIC_PROVIDER_NAMES: MusicProviderName[] = ["applemusic"];
+export const MUSIC_PROVIDER_NAMES: MusicProviderName[] = ["applemusic", "netease"];
+
+export type MusicProviderQuality = "standard" | "exhigh" | "lossless" | "hires";
 
 export interface MusicBaseConfig {
   searchLimit: number;
@@ -9,6 +11,10 @@ export interface MusicBaseConfig {
     storefront: string;
     language: string;
     defaultMediaUserToken?: string;
+  };
+  netease: {
+    quality: MusicProviderQuality;
+    defaultCookie: string;
   };
 }
 
@@ -59,13 +65,15 @@ export interface MusicSearchResult {
 
 export interface DownloadSongResult {
   filePath: string;
-  sourceType: "hls" | "preview";
+  sourceType: "hls" | "preview" | "file";
 }
 
 export interface MusicProviderClientOptions {
   mediaUserToken?: string;
   storefront?: string;
   language?: string;
+  neteaseCookie?: string;
+  neteaseQuality?: MusicProviderQuality;
 }
 
 export interface MusicProvider {

@@ -1,5 +1,7 @@
 import type { AppleMusicServiceApi } from "mioku-service-applemusic";
+import type { NeteaseServiceApi } from "mioku-service-netease";
 import { AppleMusicProvider } from "./applemusic-provider";
+import { NeteaseProvider } from "./netease-provider";
 import {
   type MusicProvider,
   type MusicProviderClientOptions,
@@ -8,6 +10,7 @@ import {
 
 export interface MusicProviderFactoryOptions {
   applemusic?: AppleMusicServiceApi;
+  netease?: NeteaseServiceApi;
 }
 
 interface MusicProviderRegistryItem {
@@ -30,6 +33,20 @@ const MUSIC_PROVIDER_REGISTRY: MusicProviderRegistryItem[] = [
         throw new Error("applemusic 服务未加载");
       }
       return new AppleMusicProvider(services.applemusic, clientOptions);
+    },
+  },
+  {
+    name: "netease",
+    serviceName: "netease",
+    isAvailable: (services) => Boolean(services.netease),
+    create: (services, clientOptions) => {
+      if (!services.netease) {
+        throw new Error("netease 服务未加载");
+      }
+      return new NeteaseProvider(services.netease, {
+        neteaseCookie: clientOptions?.neteaseCookie,
+        neteaseQuality: clientOptions?.neteaseQuality,
+      });
     },
   },
 ];
