@@ -1,6 +1,6 @@
 {
   "name": "mioku-plugin-music",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "音乐插件：点歌、搜索音乐、听歌语音发送",
   "main": "index.ts",
   "type": "module",

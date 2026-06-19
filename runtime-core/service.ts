@@ -348,12 +348,16 @@ export class MusicPluginRuntime {
 
   private createProvider(provider: MusicProviderName, mediaUserToken?: string) {
     const resolvedProvider = this.resolveProviderName(provider);
+
+    const amDefaults = this.deps.applemusicService?.getDefaultOptions();
+    const neDefaults = this.deps.neteaseService?.getDefaultOptions();
+
     const finalMediaUserToken =
       String(mediaUserToken || "").trim() ||
-      String(this.config.applemusic.defaultMediaUserToken || "").trim() ||
+      String(amDefaults?.mediaUserToken || "").trim() ||
       undefined;
     const neteaseCookie =
-      String(this.config.netease?.defaultCookie || "").trim() || undefined;
+      String(neDefaults?.cookie || "").trim() || undefined;
 
     return createMusicProvider(
       resolvedProvider,
@@ -364,9 +368,9 @@ export class MusicPluginRuntime {
       {
         mediaUserToken: finalMediaUserToken,
         neteaseCookie,
-        neteaseQuality: this.config.netease?.quality,
-        storefront: this.config.applemusic.storefront,
-        language: this.config.applemusic.language,
+        neteaseQuality: (neDefaults?.quality || "exhigh") as any,
+        storefront: String(amDefaults?.storefront || "cn"),
+        language: String(amDefaults?.language || "zh-CN"),
       },
     );
   }

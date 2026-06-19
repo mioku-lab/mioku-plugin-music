@@ -7,15 +7,6 @@ export type MusicProviderQuality = "standard" | "exhigh" | "lossless" | "hires";
 export interface MusicBaseConfig {
   searchLimit: number;
   defaultProvider?: MusicProviderName | string;
-  applemusic: {
-    storefront: string;
-    language: string;
-    defaultMediaUserToken?: string;
-  };
-  netease: {
-    quality: MusicProviderQuality;
-    defaultCookie: string;
-  };
 }
 
 export interface MusicTrack {
