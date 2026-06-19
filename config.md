@@ -11,13 +11,17 @@ fields:
   - key: base.defaultProvider
     label: 默认音乐源
     type: select
-    description: 需要安装对应的服务
+    description: 初次安装为「无」，需要选择对应的提供商并安装其服务后使用
     options:
+      - value: ""
+        label: 无（未选择）
       - value: applemusic
         label: Apple Music
       - value: netease
         label: NetEase Cloud Music
 ---
+
+> 默认音乐源初始为「无」。请先在上方选择提供商，**重启 Bot 后会自动下载对应服务**。
 
 ```mioku-fields
 keys:
