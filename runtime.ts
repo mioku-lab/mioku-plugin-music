@@ -12,11 +12,11 @@ export interface MusicRuntimeState {
 const MUSIC_PLUGIN_NAME = "music";
 
 export function getMusicRuntimeState(): MusicRuntimeState {
-  return getPluginRuntimeState<MusicRuntimeState>(MUSIC_PLUGIN_NAME);
+  return getPluginRuntimeState(MUSIC_PLUGIN_NAME) as MusicRuntimeState;
 }
 
 export function setMusicRuntimeState(nextState: MusicRuntimeState): MusicRuntimeState {
-  return setPluginRuntimeState<MusicRuntimeState>(MUSIC_PLUGIN_NAME, nextState);
+  return setPluginRuntimeState(MUSIC_PLUGIN_NAME, nextState) as MusicRuntimeState;
 }
 
 export function resetMusicRuntimeState(): void {
