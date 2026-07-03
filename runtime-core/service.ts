@@ -142,7 +142,7 @@ export class MusicPluginRuntime {
 
   async searchSongs(event: any, query: string): Promise<MusicSearchResult> {
     const session = this.getOrCreateSession(event);
-    const provider = this.createProvider(
+    const provider = await this.createProvider(
       session.provider,
       session.mediaUserToken,
     );
@@ -157,7 +157,7 @@ export class MusicPluginRuntime {
 
   async getSongDetail(event: any, songId: string) {
     const session = this.getOrCreateSession(event);
-    const provider = this.createProvider(
+    const provider = await this.createProvider(
       session.provider,
       session.mediaUserToken,
     );
@@ -166,7 +166,7 @@ export class MusicPluginRuntime {
 
   async getAlbumDetail(event: any, albumId: string) {
     const session = this.getOrCreateSession(event);
-    const provider = this.createProvider(
+    const provider = await this.createProvider(
       session.provider,
       session.mediaUserToken,
     );
@@ -181,7 +181,7 @@ export class MusicPluginRuntime {
     options?: { forceFile?: boolean },
   ): Promise<void> {
     const session = this.getOrCreateSession(event);
-    const provider = this.createProvider(
+    const provider = await this.createProvider(
       session.provider,
       session.mediaUserToken,
     );
@@ -346,11 +346,11 @@ export class MusicPluginRuntime {
     return next;
   }
 
-  private createProvider(provider: MusicProviderName, mediaUserToken?: string) {
+  private async createProvider(provider: MusicProviderName, mediaUserToken?: string) {
     const resolvedProvider = this.resolveProviderName(provider);
 
-    const amDefaults = this.deps.applemusicService?.getDefaultOptions();
-    const neDefaults = this.deps.neteaseService?.getDefaultOptions();
+    const amDefaults = await this.deps.applemusicService?.getDefaultOptions();
+    const neDefaults = await this.deps.neteaseService?.getDefaultOptions();
 
     const finalMediaUserToken =
       String(mediaUserToken || "").trim() ||
