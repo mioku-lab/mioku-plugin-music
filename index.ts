@@ -1,9 +1,7 @@
 import { definePlugin } from "mioki";
-import type { AIService } from "mioku";
-import type { ScreenshotService } from "mioku";
-import type { ConfigService } from "mioku";
-import type { AppleMusicServiceApi } from "mioku-service-applemusic";
-import type { NeteaseServiceApi } from "mioku-service-netease";
+import { AppleMusicService } from "mioku-service-applemusic";
+import { NeteaseService } from "mioku-service-netease";
+import { getService, Services } from "mioku";
 import { MusicPluginRuntime } from "./runtime-core/service";
 import { MUSIC_DEFAULTS } from "./config";
 import type { MusicBaseConfig } from "./types";
@@ -18,17 +16,11 @@ export default definePlugin({
   version: "1.0.0",
   description: "点歌与听歌插件",
   async setup(ctx) {
-    const configService = ctx.services?.config as ConfigService | undefined;
-    const aiService = ctx.services?.ai as AIService | undefined;
-    const screenshotService = ctx.services?.screenshot as
-      | ScreenshotService
-      | undefined;
-    const applemusicService = ctx.services?.applemusic as
-      | AppleMusicServiceApi
-      | undefined;
-    const neteaseService = ctx.services?.netease as
-      | NeteaseServiceApi
-      | undefined;
+    const configService = getService(ctx, Services.Config);
+    const aiService = getService(ctx, Services.AI);
+    const screenshotService = getService(ctx, Services.Screenshot);
+    const applemusicService = getService(ctx, AppleMusicService);
+    const neteaseService = getService(ctx, NeteaseService);
     let baseConfig = cloneConfig(MUSIC_DEFAULTS);
 
     if (configService) {
