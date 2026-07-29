@@ -4,10 +4,10 @@ import type { ScreenshotService } from "mioku";
 import type { ConfigService } from "mioku";
 import type { AppleMusicServiceApi } from "mioku-service-applemusic";
 import type { NeteaseServiceApi } from "mioku-service-netease";
-import { resetMusicRuntimeState, setMusicRuntimeState } from "./runtime";
 import { MusicPluginRuntime } from "./runtime-core/service";
 import { MUSIC_DEFAULTS } from "./config";
 import type { MusicBaseConfig } from "./types";
+import { createMusicSkills } from "./skills/music";
 
 function cloneConfig<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -50,7 +50,9 @@ export default definePlugin({
     });
     runtime.updateConfig(baseConfig);
 
-    setMusicRuntimeState({ runtime });
+    if (aiService) {
+      for (const skill of createMusicSkills(runtime)) aiService.registerSkill(skill);
+    }
 
     const disposers: Array<() => void> = [];
     if (configService) {
@@ -67,10 +69,8 @@ export default definePlugin({
     });
 
     return () => {
-      for (const dispose of disposers) {
-        dispose();
-      }
-      resetMusicRuntimeState();
+      for (const dispose of disposers) dispose();
+      if (aiService) aiService.removeSkill("music");
     };
   },
 });
