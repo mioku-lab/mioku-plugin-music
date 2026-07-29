@@ -56,7 +56,7 @@ export default definePlugin({
       );
     }
 
-    ctx.handle("message", async (event: any) => {
+    ctx.handle("message", async (event) => {
       await runtime.handleMessage(ctx, event);
     });
 
