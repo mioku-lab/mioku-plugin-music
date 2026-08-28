@@ -421,12 +421,12 @@ export class MusicPluginRuntime {
 
     const bot =
       typeof ctx?.pickBot === "function" ? ctx.pickBot(selfId) : undefined;
-    if (!bot || typeof bot.api !== "function") {
+    if (!bot || typeof bot.sendApi !== "function") {
       return;
     }
 
     try {
-      await bot.api("set_msg_emoji_like", {
+      await bot.sendApi("set_msg_emoji_like", {
         message_id: messageId,
         emoji_id: MusicPluginRuntime.COMMAND_REACTION_FACE_ID,
         set: true,

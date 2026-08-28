@@ -1,4 +1,4 @@
-import { definePlugin } from "mioki";
+import { definePlugin } from "mioku";
 import { AppleMusicService } from "mioku-service-applemusic";
 import { NeteaseService } from "mioku-service-netease";
 import { getService, Services } from "mioku";
