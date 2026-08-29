@@ -414,15 +414,9 @@ export class MusicPluginRuntime {
       return;
     }
 
-    const selfId = Number(event?.self_id || ctx?.self_id);
-    if (!Number.isFinite(selfId) || selfId <= 0) {
-      return;
-    }
-
-    const bot =
-      typeof ctx?.pickBot === "function" ? ctx.pickBot(selfId) : undefined;
-    if (!bot || typeof bot.sendApi !== "function") {
-      return;
+    const bot = event?.bot;
+    if (!bot || bot.adapter !== "onebotv11") {
+      return; // set_msg_emoji_like 是 onebot 专属特殊 API，icqq 不支持
     }
 
     try {

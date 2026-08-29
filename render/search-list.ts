@@ -4,11 +4,11 @@ import { getMusicProviderLabel } from "../providers/provider-labels";
 function escapeHtml(value: string): string {
   const source = String(value || "");
   return source
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g, "&amp);")
+    .replace(/</g, "&lt);")
+    .replace(/>/g, "&gt);")
+    .replace(/"/g, "&quot);")
+    .replace(/'/g, "&#039);");
 }
 
 export function renderMusicSearchListHtml(search: MusicSearchResult): string {

@@ -25,16 +25,12 @@ function getBotAndTarget(ctx: any, event: any): {
   groupId?: number;
   userId?: number;
 } {
-  const selfId = event?.self_id != null ? Number(event.self_id) : undefined;
-  const bot =
-    selfId != null && typeof ctx?.pickBot === "function"
-      ? ctx.pickBot(selfId)
-      : undefined;
+  const bot = event?.bot;
 
   return {
     bot,
-    groupId: event?.message_type === "group" ? Number(event.group_id) : undefined,
-    userId: event?.message_type !== "group" ? Number(event?.user_id) : undefined,
+    groupId: event?.message_type === "group" ? event.group_id : undefined,
+    userId: event?.message_type !== "group" ? event?.user_id : undefined,
   };
 }
 
@@ -46,7 +42,7 @@ export async function sendTextMessage(
   const { bot, groupId, userId } = getBotAndTarget(ctx, event);
   const payload: any[] = [];
 
-  payload.push(ctx?.segment?.text ? ctx.segment.text(text) : { type: "text", text });
+  payload.push(ctx.segment.text(text));
 
   if (bot && groupId != null) {
     await bot.sendGroupMsg(groupId, payload);
@@ -71,11 +67,7 @@ export async function sendImageMessage(
   const { bot, groupId, userId } = getBotAndTarget(ctx, event);
   const sendPayload = async (source: string) => {
     const payload: any[] = [];
-    payload.push(
-      ctx?.segment?.image
-        ? ctx.segment.image(normalizeFileSource(source))
-        : { type: "image", file: normalizeFileSource(source) },
-    );
+    payload.push(ctx.segment.image(normalizeFileSource(source)));
 
     if (bot && groupId != null) {
       await bot.sendGroupMsg(groupId, payload);
@@ -112,11 +104,7 @@ export async function sendFileMessage(
   const { bot, groupId, userId } = getBotAndTarget(ctx, event);
   const sendPayload = async (source: string) => {
     const payload: any[] = [];
-    payload.push(
-      ctx?.segment?.file
-        ? ctx.segment.file(normalizeFileSource(source), { name: fileName })
-        : { type: "file", file: normalizeFileSource(source), name: fileName },
-    );
+    payload.push(ctx.segment.file(normalizeFileSource(source), { name: fileName }));
 
     if (bot && groupId != null) {
       await bot.sendGroupMsg(groupId, payload);
@@ -184,11 +172,7 @@ export async function sendRecordMessage(
   const { bot, groupId, userId } = getBotAndTarget(ctx, event);
   const sendPayload = async (source: string) => {
     const payload: any[] = [];
-    payload.push(
-      ctx?.segment?.record
-        ? ctx.segment.record(normalizeFileSource(source))
-        : { type: "record", file: normalizeFileSource(source) },
-    );
+    payload.push(ctx.segment.record(normalizeFileSource(source)));
 
     if (bot && groupId != null) {
       await bot.sendGroupMsg(groupId, payload);
