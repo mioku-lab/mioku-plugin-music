@@ -13,8 +13,6 @@ function cloneConfig<T>(value: T): T {
 
 export default definePlugin({
   name: "music",
-  version: "1.0.0",
-  description: "点歌与听歌插件",
   async setup(ctx) {
     const configService = getService(ctx, Services.Config);
     const aiService = getService(ctx, Services.AI);
