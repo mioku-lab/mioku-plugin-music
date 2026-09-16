@@ -32,39 +32,6 @@ interface MusicPluginRuntimeDeps {
   neteaseService?: NeteaseServiceApi;
 }
 
-function parseListenIndex(text: string): number | null {
-  const match = text.match(/^\/?听\s*(\d{1,2})$/);
-  if (!match) {
-    return null;
-  }
-  const idx = Number(match[1]);
-  if (!Number.isFinite(idx) || idx <= 0) {
-    return null;
-  }
-  return idx;
-}
-
-function parseOriginalIndex(text: string): number | null {
-  const match = text.match(/^\/?原曲\s*(\d{1,2})$/);
-  if (!match) {
-    return null;
-  }
-  const idx = Number(match[1]);
-  if (!Number.isFinite(idx) || idx <= 0) {
-    return null;
-  }
-  return idx;
-}
-
-function parseSearchKeyword(text: string): string | null {
-  const match = text.match(/^\/?点歌\s*(.+)$/);
-  if (!match) {
-    return null;
-  }
-  const value = String(match[1] || "").trim();
-  return value ? value : null;
-}
-
 export class MusicPluginRuntime {
   private readonly deps: MusicPluginRuntimeDeps;
   private readonly sessions = new MusicSessionStore();
@@ -108,36 +75,6 @@ export class MusicPluginRuntime {
 
   getSession(event: any): MusicSessionState | undefined {
     return this.sessions.get(event);
-  }
-
-  async handleMessage(ctx: any, event: any): Promise<boolean> {
-    const text = String(ctx.text(event) || "").trim();
-    if (!text) {
-      return false;
-    }
-
-    const searchKeyword = parseSearchKeyword(text);
-    if (searchKeyword) {
-      await this.tryReactToCommandMessage(ctx, event);
-      await this.searchAndSendList(ctx, event, searchKeyword);
-      return true;
-    }
-
-    const listenIndex = parseListenIndex(text);
-    if (listenIndex != null) {
-      await this.tryReactToCommandMessage(ctx, event);
-      await this.sendByIndex(ctx, event, listenIndex, false);
-      return true;
-    }
-
-    const originalIndex = parseOriginalIndex(text);
-    if (originalIndex != null) {
-      await this.tryReactToCommandMessage(ctx, event);
-      await this.sendByIndex(ctx, event, originalIndex, true);
-      return true;
-    }
-
-    return false;
   }
 
   async searchSongs(event: any, query: string): Promise<MusicSearchResult> {
@@ -245,7 +182,7 @@ export class MusicPluginRuntime {
     await this.sendSongById(ctx, event, first.id, first.title, options);
   }
 
-  private async searchAndSendList(
+  async searchAndSendList(
     ctx: any,
     event: any,
     keyword: string,
@@ -296,7 +233,7 @@ export class MusicPluginRuntime {
     }
   }
 
-  private async sendByIndex(
+  async sendByIndex(
     ctx: any,
     event: any,
     index: number,
@@ -404,7 +341,7 @@ export class MusicPluginRuntime {
     };
   }
 
-  private async tryReactToCommandMessage(ctx: any, event: any): Promise<void> {
+  async tryReactToCommandMessage(ctx: any, event: any): Promise<void> {
     if (event?.message_type === "group") {
       return;
     }
