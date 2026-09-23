@@ -346,8 +346,8 @@ export class MusicPluginRuntime {
       return;
     }
 
-    const messageId = Number(event?.message_id);
-    if (!Number.isFinite(messageId) || messageId <= 0) {
+    const messageId = String(event?.message_id ?? "").trim();
+    if (!messageId) {
       return;
     }
 

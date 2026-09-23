@@ -26,7 +26,8 @@ export async function notifyFallback(options: {
   }
 
   const text = options.ctx.text(options.event)?.trim() ?? "";
-  if (!text.startsWith("/")) {
+  // 只有像命令的消息才触发 AI 兜底提示(命令支持裸写与 . 前缀)
+  if (!/^[./]/.test(text)) {
     return;
   }
 

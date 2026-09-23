@@ -57,33 +57,33 @@ export default definePlugin({
     const react = (event: any) => runtime.tryReactToCommandMessage(ctx, event);
 
     ctx.command({
-      name: "点歌",
-      match: /^\/?点歌\s*(.+)$/,
       prefixes: false,
+      name: "点歌",
+      match: /^点歌\s*(.+)$/,
       description: "搜索歌曲/歌手/专辑，返回最多 15 条结果图片列表",
-      usage: "/点歌 晴天",
+      usage: ".点歌 晴天",
       handler: async ({ event, match }) => {
         await react(event);
         await runtime.searchAndSendList(ctx, event, match![1].trim());
       },
     });
     ctx.command({
-      name: "听",
-      match: /^\/?听\s*(\d{1,2})$/,
       prefixes: false,
+      name: "听",
+      match: /^听\s*(\d{1,2})$/,
       description: "发送上次搜索列表中的指定歌曲语音",
-      usage: "听1",
+      usage: ".听1",
       handler: async ({ event, match }) => {
         await react(event);
         await runtime.sendByIndex(ctx, event, Number(match![1]), false);
       },
     });
     ctx.command({
-      name: "原曲",
-      match: /^\/?原曲\s*(\d{1,2})$/,
       prefixes: false,
+      name: "原曲",
+      match: /^原曲\s*(\d{1,2})$/,
       description: "发送上次搜索列表中的指定歌曲原曲文件",
-      usage: "原曲1",
+      usage: ".原曲1",
       handler: async ({ event, match }) => {
         await react(event);
         await runtime.sendByIndex(ctx, event, Number(match![1]), true);

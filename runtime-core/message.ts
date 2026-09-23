@@ -22,15 +22,17 @@ function normalizeFileSource(file: string): string {
 
 function getBotAndTarget(ctx: any, event: any): {
   bot: any;
-  groupId?: number;
-  userId?: number;
+  groupId?: string;
+  userId?: string;
 } {
   const bot = event?.bot;
+  const groupId = String(event?.group_id ?? "").trim();
+  const userId = String(event?.user_id ?? "").trim();
 
   return {
     bot,
-    groupId: event?.message_type === "group" ? event.group_id : undefined,
-    userId: event?.message_type !== "group" ? event?.user_id : undefined,
+    groupId: event?.message_type === "group" ? groupId : undefined,
+    userId: event?.message_type !== "group" ? userId : undefined,
   };
 }
 
@@ -44,11 +46,11 @@ export async function sendTextMessage(
 
   payload.push(ctx.segment.text(text));
 
-  if (bot && groupId != null) {
+  if (bot && groupId != null && groupId !== "") {
     await bot.sendGroupMsg(groupId, payload);
     return;
   }
-  if (bot && userId != null) {
+  if (bot && userId != null && userId !== "") {
     await bot.sendPrivateMsg(userId, payload);
     return;
   }
@@ -69,11 +71,11 @@ export async function sendImageMessage(
     const payload: any[] = [];
     payload.push(ctx.segment.image(normalizeFileSource(source)));
 
-    if (bot && groupId != null) {
+    if (bot && groupId != null && groupId !== "") {
       await bot.sendGroupMsg(groupId, payload);
       return;
     }
-    if (bot && userId != null) {
+    if (bot && userId != null && userId !== "") {
       await bot.sendPrivateMsg(userId, payload);
       return;
     }
@@ -106,11 +108,11 @@ export async function sendFileMessage(
     const payload: any[] = [];
     payload.push(ctx.segment.file(normalizeFileSource(source), { name: fileName }));
 
-    if (bot && groupId != null) {
+    if (bot && groupId != null && groupId !== "") {
       await bot.sendGroupMsg(groupId, payload);
       return;
     }
-    if (bot && userId != null) {
+    if (bot && userId != null && userId !== "") {
       await bot.sendPrivateMsg(userId, payload);
       return;
     }
@@ -174,11 +176,11 @@ export async function sendRecordMessage(
     const payload: any[] = [];
     payload.push(ctx.segment.record(normalizeFileSource(source)));
 
-    if (bot && groupId != null) {
+    if (bot && groupId != null && groupId !== "") {
       await bot.sendGroupMsg(groupId, payload);
       return;
     }
-    if (bot && userId != null) {
+    if (bot && userId != null && userId !== "") {
       await bot.sendPrivateMsg(userId, payload);
       return;
     }
