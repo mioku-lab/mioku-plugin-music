@@ -19,12 +19,24 @@ fields:
         label: Apple Music
       - value: netease
         label: NetEase Cloud Music
+
+  - key: base.dumpProvider
+    label: 文件解密服务
+    type: select
+    description: 私聊发送匹配后缀的文件时自动解密并回传
+    options:
+      - value: ""
+        label: 未启用
+      - value: ncmdump
+        label: ncmdump（网易云 .ncm 解密）
 ---
 
 > 默认音乐源初始为「无」。请先在上方选择提供商，**重启 Bot 后会自动下载对应服务**。
-
+>
+> 文件解密初始为「未启用」。选择后 **重启 Bot 会自动从 npm 安装对应服务包**
 ```mioku-fields
 keys:
   - base.searchLimit
   - base.defaultProvider
+  - base.dumpProvider
 ```

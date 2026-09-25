@@ -6,11 +6,84 @@
 - 搜索结果截图列表
 - 编号听歌（语音）：`.听1`
 - 编号听歌（原曲文件，群聊也直接发文件）：`.原曲1`
+- 私聊文件解密：私聊发送匹配后缀的文件
 - AI skills：搜索、发送歌曲
 
 ## 已适配 Provider
 
 - `applemusic`
+- `netease`
+
+## 已适配 Dump Provider
+
+- `ncmdump`（`mioku-service-ncmdump`，支持 `.ncm`）
+
+## 可选服务与自动安装
+
+`defaultProvider` / `dumpProvider` 对应的服务都是可选安装：
+
+1. 在配置中选择（如 `base.dumpProvider = "ncmdump"`）
+2. 重启 Bot，插件检测到服务包未安装时自动在后台执行 `bun add mioku-service-ncmdump`（从 npm）
+3. 再次重启后服务加载，功能生效
+
+## Dump Provider 对接要求
+
+`music` 插件通过"服务 API + dump provider 适配器"接入新的解密服务（如 kgm/qmc 等）。规范与 music provider 对称：
+
+### 1. 服务 API 标准（服务包侧）
+
+服务包（`mioku-service-<name>`）需导出 `defineService` 的 `ServiceRef` 并实现以下接口：
+
+```ts
+export interface DumpConvertInput {
+  readonly inputPath: string; // 已下载到本地的加密文件
+  readonly outputDir?: string; // 缺省为输入文件所在目录
+}
+
+export interface DumpConvertOutput {
+  readonly filePath: string; // 解密后的本地文件
+  readonly fileName: string; // 输出文件名（含扩展名）
+}
+
+export interface DumpServiceApi {
+  ensureReady(): Promise<unknown>; // 确保二进制/依赖可用
+  convert(input: DumpConvertInput): Promise<DumpConvertOutput>;
+}
+```
+
+服务自身负责二进制/外部依赖的跨平台引导（Homebrew、gh-proxy 下载解压等），插件不感知平台差异。参考实现见 `mioku-service-ncmdump`。
+
+### 2. 插件侧适配器标准（`DumpProvider`）
+
+在 `dumps/` 下新增适配器并注册到 `dumps/factory.ts` 的 `DUMP_PROVIDER_REGISTRY`：
+
+```ts
+export interface DumpProvider {
+  readonly name: DumpProviderName;
+  readonly extensions: readonly string[]; // 触发后缀，如 [".ncm"]
+  dump(target: DumpTarget): Promise<DumpResult>;
+}
+
+export interface DumpTarget {
+  readonly sourcePath: string; // 已下载到本地的加密文件
+  readonly fileName: string; // 原始文件名
+  readonly outputDir: string; // 输出目录（temp/ncmdump/jobs/<id>）
+}
+
+export interface DumpResult {
+  readonly filePath: string; // 解密后的本地文件
+  readonly fileName: string; // 输出文件名
+}
+```
+
+同时补齐：`types.ts` 的 `DumpProviderName` / `DUMP_PROVIDER_NAMES`、`config.md` 的 `base.dumpProvider` 选项、`package.json` 的 peer/devDependencies。
+
+### 3. 行为约束
+
+- 只在**私聊**触发；文件名后缀匹配 `extensions` 才下载，尽量不拉取无关文件
+- **全程静默**：不回复任何进度或错误消息，成功直接发送结果文件；每个阶段的成败与原因都写入 ctx logger
+- 每个文件独立转换、串行执行，转换与下载产物放在 `temp/ncmdump/jobs/<id>/`，发送完成后清理
+- `convert` 一次只处理一个文件；失败抛 `Error`，由上层统一记录日志
 
 ## Provider 对接要求
 

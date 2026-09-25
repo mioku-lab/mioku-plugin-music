@@ -1,15 +1,37 @@
 import { definePlugin } from "mioku";
-import { AppleMusicService } from "mioku-service-applemusic";
-import { NeteaseService } from "mioku-service-netease";
 import { getService, Services } from "mioku";
+import type { MessageEvent } from "mioku";
+import type { AppleMusicServiceApi } from "mioku-service-applemusic";
+import type { NeteaseServiceApi } from "mioku-service-netease";
+import type { NcmdumpServiceApi } from "mioku-service-ncmdump";
 import { MusicPluginRuntime } from "./runtime-core/service";
 import { MUSIC_DEFAULTS } from "./config";
 import type { MusicBaseConfig } from "./types";
 import { createMusicSkills } from "./skills/music";
+import { importOptionalService } from "./runtime-core/optional-service";
+import { installMissingOptionalServices } from "./runtime-core/auto-install";
+import { DumpFlow } from "./runtime-core/dump-flow";
+import { dumpProviderExtensions } from "./dumps/factory";
+import { extractIncomingFiles } from "./dumps/file-source";
 
 function cloneConfig<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
+
+function mergeWithDefaults(next: unknown): MusicBaseConfig {
+  return { ...cloneConfig(MUSIC_DEFAULTS), ...(next as MusicBaseConfig) };
+}
+
+type PrivateMessageRoute =
+  | "onebotv11:message.private"
+  | "icqq:message.private"
+  | "qq-official:message.private";
+
+const PRIVATE_MESSAGE_ROUTES: readonly PrivateMessageRoute[] = [
+  "onebotv11:message.private",
+  "icqq:message.private",
+  "qq-official:message.private",
+];
 
 export default definePlugin({
   name: "music",
@@ -17,19 +39,30 @@ export default definePlugin({
     const configService = getService(ctx, Services.Config);
     const aiService = getService(ctx, Services.AI);
     const screenshotService = getService(ctx, Services.Screenshot);
-    const applemusicService = getService(ctx, AppleMusicService);
-    const neteaseService = getService(ctx, NeteaseService);
+    const [applemusicRef, neteaseRef, ncmdumpRef] = await Promise.all([
+      importOptionalService<AppleMusicServiceApi>(
+        "mioku-service-applemusic",
+        "AppleMusicService",
+      ),
+      importOptionalService<NeteaseServiceApi>("mioku-service-netease", "NeteaseService"),
+      importOptionalService<NcmdumpServiceApi>("mioku-service-ncmdump", "NcmdumpService"),
+    ]);
+    const applemusicService = applemusicRef ? getService(ctx, applemusicRef) : undefined;
+    const neteaseService = neteaseRef ? getService(ctx, neteaseRef) : undefined;
+    const ncmdumpService = ncmdumpRef ? getService(ctx, ncmdumpRef) : undefined;
     let baseConfig = cloneConfig(MUSIC_DEFAULTS);
 
     if (configService) {
       await configService.registerConfig("music", "base", baseConfig);
       const nextBase = await configService.getConfig("music", "base");
       if (nextBase) {
-        baseConfig = nextBase as MusicBaseConfig;
+        baseConfig = mergeWithDefaults(nextBase);
       }
     } else {
       ctx.logger.warn("config-service 未加载，music 插件将使用默认配置");
     }
+
+    installMissingOptionalServices(ctx.logger, baseConfig);
 
     const runtime = new MusicPluginRuntime({
       logger: ctx.logger,
@@ -37,6 +70,7 @@ export default definePlugin({
       screenshotService,
       applemusicService,
       neteaseService,
+      ncmdumpService,
     });
     runtime.updateConfig(baseConfig);
 
@@ -48,13 +82,28 @@ export default definePlugin({
     if (configService) {
       disposers.push(
         configService.onConfigChange("music", "base", (next) => {
-          baseConfig = next as MusicBaseConfig;
+          baseConfig = mergeWithDefaults(next);
           runtime.updateConfig(baseConfig);
+          installMissingOptionalServices(ctx.logger, baseConfig);
         }),
       );
     }
 
-    const react = (event: any) => runtime.tryReactToCommandMessage(ctx, event);
+    const dumpFlow = new DumpFlow({ logger: ctx.logger });
+    disposers.push(
+      ctx.handle(PRIVATE_MESSAGE_ROUTES, (event) => {
+        const provider = runtime.resolveDumpProvider();
+        if (!provider) return;
+        const files = extractIncomingFiles(
+          event,
+          dumpProviderExtensions(provider.name),
+          ctx.logger,
+        );
+        for (const file of files) dumpFlow.enqueue(ctx, event, provider, file);
+      }),
+    );
+
+    const react = (event: MessageEvent) => runtime.tryReactToCommandMessage(ctx, event);
 
     ctx.command({
       prefixes: false,

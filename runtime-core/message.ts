@@ -1,5 +1,6 @@
 import * as fs from "fs/promises";
 import * as path from "path";
+import type { MessageEvent, MessageSegment, MiokuContext } from "mioku";
 
 function normalizeFileSource(file: string): string {
   const value = String(file || "").trim();
@@ -15,112 +16,88 @@ function normalizeFileSource(file: string): string {
     return value;
   }
   if (value.startsWith("/") || /^[A-Za-z]:[\\/]/.test(value)) {
-    return `file://${value}`;
+    const normalized = value.replace(/\\/g, "/");
+    return `file:///${normalized.replace(/^\//, "")}`;
   }
   return value;
 }
 
-function getBotAndTarget(ctx: any, event: any): {
-  bot: any;
+function getBotAndTarget(event: MessageEvent): {
+  bot: MessageEvent["bot"];
   groupId?: string;
   userId?: string;
 } {
-  const bot = event?.bot;
   const groupId = String(event?.group_id ?? "").trim();
   const userId = String(event?.user_id ?? "").trim();
 
   return {
-    bot,
+    bot: event?.bot,
     groupId: event?.message_type === "group" ? groupId : undefined,
     userId: event?.message_type !== "group" ? userId : undefined,
   };
 }
 
-export async function sendTextMessage(
-  ctx: any,
-  event: any,
-  text: string,
+async function sendSegments(
+  ctx: MiokuContext,
+  event: MessageEvent,
+  segments: readonly MessageSegment[],
 ): Promise<void> {
-  const { bot, groupId, userId } = getBotAndTarget(ctx, event);
-  const payload: any[] = [];
-
-  payload.push(ctx.segment.text(text));
-
+  const { bot, groupId, userId } = getBotAndTarget(event);
   if (bot && groupId != null && groupId !== "") {
-    await bot.sendGroupMsg(groupId, payload);
+    await bot.sendGroupMsg(groupId, [...segments]);
     return;
   }
   if (bot && userId != null && userId !== "") {
-    await bot.sendPrivateMsg(userId, payload);
+    await bot.sendPrivateMsg(userId, [...segments]);
     return;
   }
   if (typeof event?.reply === "function") {
-    await event.reply(text);
+    await event.reply([...segments]);
     return;
   }
-  throw new Error("当前上下文不支持文本发送");
+  throw new Error("当前上下文不支持消息发送");
+}
+
+export async function sendTextMessage(
+  ctx: MiokuContext,
+  event: MessageEvent,
+  text: string,
+): Promise<void> {
+  await sendSegments(ctx, event, [ctx.segment.text(text)]);
 }
 
 export async function sendImageMessage(
-  ctx: any,
-  event: any,
+  ctx: MiokuContext,
+  event: MessageEvent,
   imagePath: string,
 ): Promise<void> {
-  const { bot, groupId, userId } = getBotAndTarget(ctx, event);
-  const sendPayload = async (source: string) => {
-    const payload: any[] = [];
-    payload.push(ctx.segment.image(normalizeFileSource(source)));
-
-    if (bot && groupId != null && groupId !== "") {
-      await bot.sendGroupMsg(groupId, payload);
-      return;
-    }
-    if (bot && userId != null && userId !== "") {
-      await bot.sendPrivateMsg(userId, payload);
-      return;
-    }
-    if (typeof event?.reply === "function") {
-      await event.reply(payload);
-      return;
-    }
-    throw new Error("当前上下文不支持图片发送");
+  const send = async (source: string): Promise<void> => {
+    await sendSegments(ctx, event, [
+      ctx.segment.image(normalizeFileSource(source)),
+    ]);
   };
 
   try {
-    await sendPayload(imagePath);
+    await send(imagePath);
   } catch {
     const buffer = await fs.readFile(imagePath);
-    const base64 = `base64://${buffer.toString("base64")}`;
-    await sendPayload(base64);
+    await send(`base64://${buffer.toString("base64")}`);
   }
 }
 
 export async function sendFileMessage(
-  ctx: any,
-  event: any,
+  ctx: MiokuContext,
+  event: MessageEvent,
   filePath: string,
   name: string,
 ): Promise<void> {
   const ext = path.extname(filePath);
   const fileName = ext ? `${name}${ext}` : name;
-  const { bot, groupId, userId } = getBotAndTarget(ctx, event);
-  const sendPayload = async (source: string) => {
-    const payload: any[] = [];
-    payload.push(ctx.segment.file(normalizeFileSource(source), { name: fileName }));
 
-    if (bot && groupId != null && groupId !== "") {
-      await bot.sendGroupMsg(groupId, payload);
-      return;
-    }
-    if (bot && userId != null && userId !== "") {
-      await bot.sendPrivateMsg(userId, payload);
-      return;
-    }
-    if (typeof event?.reply === "function") {
-      await event.reply(payload);
-      return;
-    }
-    throw new Error("当前上下文不支持文件发送");
+  const send = async (source: string): Promise<void> => {
+    await sendSegments(ctx, event, [
+      ctx.segment.file(normalizeFileSource(source), { name: fileName }),
+    ]);
   };
 
   const canReadLocalFile =
@@ -128,7 +105,7 @@ export async function sendFileMessage(
 
   let fileSendError: unknown;
   try {
-    await sendPayload(filePath);
+    await send(filePath);
     return;
   } catch (error) {
     fileSendError = error;
@@ -149,9 +126,8 @@ export async function sendFileMessage(
       : new Error(String(fileSendError || "文件发送失败"));
   }
 
-  const base64 = `base64://${buffer.toString("base64")}`;
   try {
-    await sendPayload(base64);
+    await send(`base64://${buffer.toString("base64")}`);
   } catch (base64Error) {
     const message = String(base64Error || "");
     const timeoutLike =
@@ -167,28 +143,14 @@ export async function sendFileMessage(
 }
 
 export async function sendRecordMessage(
-  ctx: any,
-  event: any,
+  ctx: MiokuContext,
+  event: MessageEvent,
   audioPath: string,
 ): Promise<void> {
-  const { bot, groupId, userId } = getBotAndTarget(ctx, event);
-  const sendPayload = async (source: string) => {
-    const payload: any[] = [];
-    payload.push(ctx.segment.record(normalizeFileSource(source)));
-
-    if (bot && groupId != null && groupId !== "") {
-      await bot.sendGroupMsg(groupId, payload);
-      return;
-    }
-    if (bot && userId != null && userId !== "") {
-      await bot.sendPrivateMsg(userId, payload);
-      return;
-    }
-    if (typeof event?.reply === "function") {
-      await event.reply(payload);
-      return;
-    }
-    throw new Error("当前上下文不支持语音发送");
+  const send = async (source: string): Promise<void> => {
+    await sendSegments(ctx, event, [
+      ctx.segment.record(normalizeFileSource(source)),
+    ]);
   };
 
   const canReadLocalFile =
@@ -196,7 +158,7 @@ export async function sendRecordMessage(
 
   let fileSendError: unknown;
   try {
-    await sendPayload(audioPath);
+    await send(audioPath);
     return;
   } catch (error) {
     fileSendError = error;
@@ -217,9 +179,8 @@ export async function sendRecordMessage(
       : new Error(String(fileSendError || "语音发送失败"));
   }
 
-  const base64 = `base64://${buffer.toString("base64")}`;
   try {
-    await sendPayload(base64);
+    await send(`base64://${buffer.toString("base64")}`);
   } catch (base64Error) {
     const message = String(base64Error || "");
     const timeoutLike =

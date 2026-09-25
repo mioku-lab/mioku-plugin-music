@@ -2,7 +2,14 @@ import type { AIService } from "mioku";
 import type { ScreenshotService } from "mioku";
 import type { AppleMusicServiceApi } from "mioku-service-applemusic";
 import type { NeteaseServiceApi } from "mioku-service-netease";
+import type { NcmdumpServiceApi } from "mioku-service-ncmdump";
 import { MUSIC_DEFAULTS } from "../config";
+import {
+  createDumpProvider,
+  getDumpProviderCandidates,
+  resolveDumpProviderName,
+} from "../dumps/factory";
+import type { DumpProvider } from "../dumps/types";
 import {
   createMusicProvider,
   getMusicProviderCandidates,
@@ -30,6 +37,7 @@ interface MusicPluginRuntimeDeps {
   screenshotService?: ScreenshotService;
   applemusicService?: AppleMusicServiceApi;
   neteaseService?: NeteaseServiceApi;
+  ncmdumpService?: NcmdumpServiceApi;
 }
 
 export class MusicPluginRuntime {
@@ -59,6 +67,31 @@ export class MusicPluginRuntime {
         `music defaultProvider=${configured} 不可用，已回退到 ${resolved}`,
       );
     }
+    this.warnDumpProvider(nextConfig);
+  }
+
+  private warnDumpProvider(config: MusicBaseConfig): void {
+    const configured = String(config.dumpProvider || "").trim();
+    if (!configured) return;
+    if (resolveDumpProviderName(configured, this.getDumpServices())) return;
+    const candidates = getDumpProviderCandidates();
+    this.deps.logger.warn(
+      `music dumpProvider=${configured} 不可用，私聊文件解密未启用。候选列表=${candidates.join(", ")}`,
+    );
+  }
+
+  resolveDumpProvider(): DumpProvider | null {
+    const services = this.getDumpServices();
+    const configured = String(this.config.dumpProvider || "").trim();
+    const resolved = resolveDumpProviderName(configured, services);
+    if (!resolved) return null;
+    return createDumpProvider(resolved, services);
+  }
+
+  private getDumpServices() {
+    return {
+      ncmdump: this.deps.ncmdumpService,
+    };
   }
 
   setSessionMediaUserToken(event: any, token: string): void {

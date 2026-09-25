@@ -2,11 +2,16 @@ export type MusicProviderName = "applemusic" | "netease";
 
 export const MUSIC_PROVIDER_NAMES: MusicProviderName[] = ["applemusic", "netease"];
 
+export type DumpProviderName = "ncmdump";
+
+export const DUMP_PROVIDER_NAMES: DumpProviderName[] = ["ncmdump"];
+
 export type MusicProviderQuality = "standard" | "exhigh" | "lossless" | "hires";
 
 export interface MusicBaseConfig {
   searchLimit: number;
   defaultProvider?: MusicProviderName | string;
+  dumpProvider?: DumpProviderName | string;
 }
 
 export interface MusicTrack {

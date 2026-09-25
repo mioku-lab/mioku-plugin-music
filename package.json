@@ -1,7 +1,7 @@
 {
   "name": "mioku-plugin-music",
-  "version": "3.0.3",
-  "description": "音乐插件：点歌、搜索音乐、听歌语音发送",
+  "version": "3.1.0",
+  "description": "音乐插件：点歌、搜索音乐、听歌语音发送、私聊 ncm 文件解密",
   "main": "index.ts",
   "type": "module",
   "keywords": [
@@ -21,11 +21,13 @@
   "peerDependencies": {
     "mioku": "^1.0.0",
     "mioku-service-applemusic": "^3.0.0",
-    "mioku-service-netease": "^2.0.0"
+    "mioku-service-netease": "^2.0.0",
+    "mioku-service-ncmdump": "^1.0.0"
   },
   "devDependencies": {
     "mioku": "workspace:*",
     "mioku-service-applemusic": "workspace:*",
-    "mioku-service-netease": "workspace:*"
+    "mioku-service-netease": "workspace:*",
+    "mioku-service-ncmdump": "workspace:*"
   }
 }
